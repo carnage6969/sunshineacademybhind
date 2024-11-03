@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Submissions</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Submissions</h1>
+        <div id="submissions" class="space-y-4"></div>
+    </div>
+
+    <script>
+        async function fetchSubmissions() {
+            try {
+                const response = await fetch('/submissions6000');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    displaySubmissions(result.data);
+                } else {
+                    throw new Error(result.error || 'Failed to fetch submissions');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('submissions').innerHTML = `
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        Error loading submissions: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function displaySubmissions(submissions) {
+            const container = document.getElementById('submissions');
+            
+            if (submissions.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                        No submissions found.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = submissions.map(sub => `
+                <div class="bg-white shadow rounded-lg p-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <h2 class="text-xl font-semibold">${escapeHtml(sub.name)}</h2>
+                            <p class="text-gray-600">${escapeHtml(sub.email)}</p>
+                            <p class="text-gray-600">${escapeHtml(sub.phone)}</p>
+                        </div>
+                        <div>
+                            <h3 class="font-medium mb-2">Message:</h3>
+                            <p class="text-gray-700">${escapeHtml(sub.message)}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+        // Fetch submissions when page loads
+        fetchSubmissions();
+    </script>
+</body>
+</html>
